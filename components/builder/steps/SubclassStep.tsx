@@ -2,12 +2,14 @@
 
 import { getClass } from "@/lib/srd/classes";
 import { useBuilderStore } from "@/store/builderStore";
+import { useHomebrewStore } from "@/store/homebrewStore";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Lock } from "lucide-react";
 
 export function SubclassStep() {
   const { classSlug, subclass, level, setSubclass, nextStep } = useBuilderStore();
+  const homebrewSubclasses = useHomebrewStore((s) => s.subclasses);
   const classData = getClass(classSlug);
 
   if (!classData) {
@@ -44,6 +46,22 @@ export function SubclassStep() {
     );
   }
 
+  // Merge SRD + homebrew subclasses for this class.
+  const matchingHB = homebrewSubclasses.filter(
+    (sc) => sc.className.toLowerCase() === classData.name.toLowerCase(),
+  );
+
+  type DisplaySubclass = { slug: string; name: string; desc: string; isHomebrew: boolean };
+  const allSubclasses: DisplaySubclass[] = [
+    ...classData.subclasses.map((sc) => ({ ...sc, isHomebrew: false })),
+    ...matchingHB.map((sc) => ({
+      slug: sc.slug,
+      name: sc.name,
+      desc: sc.desc || sc.features || "",
+      isHomebrew: true,
+    })),
+  ];
+
   return (
     <div className="space-y-4">
       <div>
@@ -56,7 +74,7 @@ export function SubclassStep() {
       </div>
 
       <div className="space-y-3">
-        {classData.subclasses.map((sc) => (
+        {allSubclasses.map((sc) => (
           <button
             key={sc.slug}
             onClick={() => setSubclass(sc.slug)}
@@ -64,11 +82,16 @@ export function SubclassStep() {
               "w-full rounded-lg border p-4 text-left transition-colors",
               subclass === sc.slug
                 ? "border-primary/60 bg-primary/10"
-                : "border-border bg-card hover:border-primary/40"
+                : "border-border bg-card hover:border-primary/40",
             )}
           >
-            <p className="font-semibold text-foreground">{sc.name}</p>
-            <p className="text-sm text-muted-foreground mt-1">{sc.desc}</p>
+            <p className="font-semibold text-foreground flex items-center gap-2">
+              {sc.name}
+              {sc.isHomebrew && <span className="badge-homebrew text-[10px]">HB</span>}
+            </p>
+            {sc.desc && (
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-3">{sc.desc}</p>
+            )}
           </button>
         ))}
       </div>

@@ -37,40 +37,42 @@ import {
 // ── CSV parser ────────────────────────────────────────────────────────────────
 // Handles quoted fields (including embedded commas and escaped double-quotes).
 
+/**
+ * RFC-4180 streaming CSV parser.
+ * Handles quoted fields that contain embedded commas, newlines, and escaped
+ * double-quotes ("") correctly — the previous line-split approach broke any
+ * field whose value spanned multiple lines (e.g. spell descriptions).
+ */
 export function parseCSV(text: string): string[][] {
   const rows: string[][] = [];
-  const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
-  for (const raw of lines) {
-    const line = raw.trim();
-    if (!line) continue;
-    rows.push(parseCSVLine(line));
-  }
-  return rows;
-}
-
-function parseCSVLine(line: string): string[] {
-  const cells: string[] = [];
-  let current = "";
+  const src = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  let row: string[] = [];
+  let cell = "";
   let inQuotes = false;
 
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i]!;
-    if (ch === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        current += '"';
-        i++;
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i]!;
+    if (inQuotes) {
+      if (ch === '"') {
+        if (src[i + 1] === '"') { cell += '"'; i++; } // escaped ""
+        else { inQuotes = false; }
       } else {
-        inQuotes = !inQuotes;
+        cell += ch; // embedded newlines preserved inside quotes
       }
-    } else if (ch === "," && !inQuotes) {
-      cells.push(current.trim());
-      current = "";
     } else {
-      current += ch;
+      if      (ch === '"')  { inQuotes = true; }
+      else if (ch === ',')  { row.push(cell.trim()); cell = ""; }
+      else if (ch === '\n') {
+        row.push(cell.trim());
+        if (row.some(Boolean)) rows.push(row);
+        row = []; cell = "";
+      } else { cell += ch; }
     }
   }
-  cells.push(current.trim());
-  return cells;
+  // flush final cell / row
+  row.push(cell.trim());
+  if (row.some(Boolean)) rows.push(row);
+  return rows;
 }
 
 // ── Header normalisation ──────────────────────────────────────────────────────

@@ -50,6 +50,10 @@ import {
   AlertCircle,
   Loader2,
   SkipForward,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  X,
 } from "lucide-react";
 import { SPELL_SCHOOLS } from "@/lib/srd/index";
 
@@ -166,14 +170,6 @@ export default function HomebrewPage() {
     added: number;
     errors: { row: number; name: string; message: string }[];
   } | null>(null);
-
-  // Manual-entry form visibility per type
-  const [showSpellForm, setShowSpellForm] = useState(false);
-  const [showItemForm, setShowItemForm] = useState(false);
-  const [showFeatForm, setShowFeatForm] = useState(false);
-  const [showSubclassForm, setShowSubclassForm] = useState(false);
-  const [showMonsterForm, setShowMonsterForm] = useState(false);
-  const [showWeaponForm, setShowWeaponForm] = useState(false);
 
   // ── Counts ──────────────────────────────────────────────────────────────────
 
@@ -339,12 +335,6 @@ export default function HomebrewPage() {
   const changeTab = (t: Tab) => {
     setTab(t);
     setCsvResult(null);
-    setShowSpellForm(false);
-    setShowItemForm(false);
-    setShowFeatForm(false);
-    setShowSubclassForm(false);
-    setShowMonsterForm(false);
-    setShowWeaponForm(false);
   };
 
   // ── Render ──────────────────────────────────────────────────────────────────
@@ -571,236 +561,14 @@ export default function HomebrewPage() {
       {/* ── MANUAL MODE ─────────────────────────────────────────────────────── */}
       {mode === "manual" && (
         <div className="space-y-4">
-          {/* Spells */}
-          {tab === "spells" && (
-            <>
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-2"
-                onClick={() => setShowSpellForm((v) => !v)}
-              >
-                <Plus className="h-4 w-4" />
-                Add Spell
-              </Button>
-              {showSpellForm && (
-                <SpellForm
-                  onSave={(s) => {
-                    store.addSpell(s);
-                    setShowSpellForm(false);
-                  }}
-                  onCancel={() => setShowSpellForm(false)}
-                />
-              )}
-              <EntityList
-                items={store.spells}
-                renderLabel={(s) =>
-                  `${s.school} · ${s.level === "Cantrip" ? "Cantrip" : `Level ${s.level_int}`} · ${s.dnd_class || "—"}`
-                }
-                onRemove={(s) => store.removeSpell(s.slug)}
-              />
-            </>
-          )}
-
-          {/* Items */}
-          {tab === "items" && (
-            <>
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-2"
-                onClick={() => setShowItemForm((v) => !v)}
-              >
-                <Plus className="h-4 w-4" />
-                Add Item
-              </Button>
-              {showItemForm && (
-                <ItemForm
-                  onSave={(item) => {
-                    store.addItem(item);
-                    setShowItemForm(false);
-                  }}
-                  onCancel={() => setShowItemForm(false)}
-                />
-              )}
-              <EntityList
-                items={store.items}
-                renderLabel={(item) => `${item.rarity} · ${item.type}`}
-                onRemove={(item) => store.removeItem(item.slug)}
-              />
-            </>
-          )}
-
-          {/* Feats */}
-          {tab === "feats" && (
-            <>
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-2"
-                onClick={() => setShowFeatForm((v) => !v)}
-              >
-                <Plus className="h-4 w-4" />
-                Add Feat
-              </Button>
-              {showFeatForm && (
-                <FeatForm
-                  onSave={(feat) => {
-                    store.addFeat(feat);
-                    setShowFeatForm(false);
-                  }}
-                  onCancel={() => setShowFeatForm(false)}
-                />
-              )}
-              <EntityList
-                items={store.feats}
-                renderLabel={(feat) =>
-                  feat.prerequisite ? `Req: ${feat.prerequisite}` : "No prerequisite"
-                }
-                onRemove={(feat) => store.removeFeat(feat.slug)}
-              />
-            </>
-          )}
-
-          {/* Subclasses */}
-          {tab === "subclasses" && (
-            <>
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-2"
-                onClick={() => setShowSubclassForm((v) => !v)}
-              >
-                <Plus className="h-4 w-4" />
-                Add Subclass
-              </Button>
-              {showSubclassForm && (
-                <SubclassForm
-                  onSave={(sc) => {
-                    store.addSubclass(sc);
-                    setShowSubclassForm(false);
-                  }}
-                  onCancel={() => setShowSubclassForm(false)}
-                />
-              )}
-              <EntityList
-                items={store.subclasses}
-                renderLabel={(sc) =>
-                  `${sc.className}${sc.source ? ` · ${sc.source}` : ""}`
-                }
-                onRemove={(sc) => store.removeSubclass(sc.slug)}
-              />
-            </>
-          )}
-
-          {/* Monsters */}
-          {tab === "monsters" && (
-            <>
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-2"
-                onClick={() => setShowMonsterForm((v) => !v)}
-              >
-                <Plus className="h-4 w-4" />
-                Add Monster
-              </Button>
-              {showMonsterForm && (
-                <MonsterForm
-                  onSave={(m) => {
-                    store.addMonster(m);
-                    setShowMonsterForm(false);
-                  }}
-                  onCancel={() => setShowMonsterForm(false)}
-                />
-              )}
-              <EntityList
-                items={store.monsters}
-                renderLabel={(m) =>
-                  `CR ${m.cr} · ${m.size} ${m.type}${m.source ? ` · ${m.source}` : ""}`
-                }
-                onRemove={(m) => store.removeMonster(m.slug)}
-              />
-            </>
-          )}
-
-          {/* Weapons */}
-          {tab === "weapons" && (
-            <>
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-2"
-                onClick={() => setShowWeaponForm((v) => !v)}
-              >
-                <Plus className="h-4 w-4" />
-                Add Weapon
-              </Button>
-              {showWeaponForm && (
-                <WeaponForm
-                  onSave={(w) => {
-                    store.addWeapon(w);
-                    setShowWeaponForm(false);
-                  }}
-                  onCancel={() => setShowWeaponForm(false)}
-                />
-              )}
-              <EntityList
-                items={store.weapons}
-                renderLabel={(w) =>
-                  `${w.category} · ${w.damage} ${w.damage_type}${w.properties ? ` · ${w.properties}` : ""}`
-                }
-                onRemove={(w) => store.removeWeapon(w.slug)}
-              />
-            </>
-          )}
-
-          {/* Races */}
-          {tab === "races" && (
-            <>
-              <p className="text-sm text-muted-foreground">
-                Races have nested trait structures. Use{" "}
-                <button
-                  onClick={() => setMode("csv")}
-                  className="text-primary underline underline-offset-2"
-                >
-                  CSV import
-                </button>{" "}
-                for bulk entry, or JSON import (via the header button) for full
-                control.
-              </p>
-              <EntityList
-                items={store.races}
-                renderLabel={(r) =>
-                  `${r.size} · ${r.speed} ft.${r.subraces.length > 0 ? ` · ${r.subraces.length} subraces` : ""}`
-                }
-                onRemove={(r) => store.removeRace(r.slug)}
-              />
-            </>
-          )}
-
-          {/* Backgrounds */}
-          {tab === "backgrounds" && (
-            <>
-              <p className="text-sm text-muted-foreground">
-                Use{" "}
-                <button
-                  onClick={() => setMode("csv")}
-                  className="text-primary underline underline-offset-2"
-                >
-                  CSV import
-                </button>{" "}
-                for bulk entry, or JSON import for full control.
-              </p>
-              <EntityList
-                items={store.backgrounds}
-                renderLabel={(b) =>
-                  `Skills: ${b.skillProficiencies.join(", ") || "—"}`
-                }
-                onRemove={(b) => store.removeBackground(b.slug)}
-              />
-            </>
-          )}
+          {tab === "spells"      && <SpellsTab />}
+          {tab === "items"       && <ItemsTab />}
+          {tab === "feats"       && <FeatsTab />}
+          {tab === "subclasses"  && <SubclassesTab />}
+          {tab === "monsters"    && <MonstersTab />}
+          {tab === "weapons"     && <WeaponsTab />}
+          {tab === "races"       && <RacesTab onSwitchToCSV={() => setMode("csv")} />}
+          {tab === "backgrounds" && <BackgroundsTab onSwitchToCSV={() => setMode("csv")} />}
         </div>
       )}
     </main>
@@ -1595,6 +1363,558 @@ function BulkResultsList({
         ))}
       </div>
     </div>
+  );
+}
+
+// ── Filter primitives ─────────────────────────────────────────────────────────
+
+function TabSearch({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+}) {
+  return (
+    <div className="relative">
+      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full h-8 rounded-md border border-input bg-background pl-8 pr-8 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+      />
+      {value && (
+        <button
+          onClick={() => onChange("")}
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function FilterChips({
+  label,
+  options,
+  active,
+  onToggle,
+}: {
+  label: string;
+  options: string[];
+  active: string[];
+  onToggle: (v: string) => void;
+}) {
+  if (options.length < 2) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">
+        {label}:
+      </span>
+      {options.map((opt) => (
+        <button
+          key={opt}
+          onClick={() => onToggle(opt)}
+          className={`px-2 py-0.5 rounded-full text-xs border transition-colors ${
+            active.includes(opt)
+              ? "border-primary bg-primary/20 text-primary font-medium"
+              : "border-border bg-card text-muted-foreground hover:border-primary/50"
+          }`}
+        >
+          {opt}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ToggleFilter({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: boolean | null;
+  onChange: (v: boolean | null) => void;
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">
+        {label}:
+      </span>
+      <button
+        onClick={() => onChange(value === true ? null : true)}
+        className={`px-2 py-0.5 rounded-full text-xs border transition-colors ${
+          value === true
+            ? "border-green-500/70 bg-green-500/15 text-green-400 font-medium"
+            : "border-border bg-card text-muted-foreground hover:border-green-500/50"
+        }`}
+      >
+        Yes
+      </button>
+      <button
+        onClick={() => onChange(value === false ? null : false)}
+        className={`px-2 py-0.5 rounded-full text-xs border transition-colors ${
+          value === false
+            ? "border-destructive/70 bg-destructive/15 text-destructive font-medium"
+            : "border-border bg-card text-muted-foreground hover:border-destructive/50"
+        }`}
+      >
+        No
+      </button>
+    </div>
+  );
+}
+
+function FilterBar({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border border-border bg-secondary/20 px-3 py-2.5 space-y-2">
+      {children}
+    </div>
+  );
+}
+
+function tog(arr: string[], val: string): string[] {
+  return arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val];
+}
+
+function crToNum(cr: string): number {
+  if (cr.includes("/")) {
+    const [n, d] = cr.split("/");
+    return Number(n) / Number(d);
+  }
+  return Number(cr) || 0;
+}
+
+// ── Per-tab components (each owns its own filter + form state) ────────────────
+
+function SpellsTab() {
+  const store = useHomebrewStore();
+  const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState("");
+  const [fSchools, setFSchools] = useState<string[]>([]);
+  const [fLevels, setFLevels] = useState<string[]>([]);
+  const [fConc, setFConc] = useState<boolean | null>(null);
+  const [fRitual, setFRitual] = useState<boolean | null>(null);
+
+  const schools = [...new Set(store.spells.map((s) => s.school))].sort();
+  const levels = [...new Set(store.spells.map((s) => s.level))].sort((a, b) =>
+    a === "Cantrip" ? -1 : b === "Cantrip" ? 1 : Number(a) - Number(b),
+  );
+
+  const filtered = store.spells.filter((s) => {
+    if (search && !s.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (fSchools.length && !fSchools.includes(s.school)) return false;
+    if (fLevels.length && !fLevels.includes(s.level)) return false;
+    if (fConc !== null && (s.concentration === "yes") !== fConc) return false;
+    if (fRitual !== null && (s.ritual === "yes") !== fRitual) return false;
+    return true;
+  });
+
+  return (
+    <>
+      <Button size="sm" variant="outline" className="gap-2" onClick={() => setShowForm((v) => !v)}>
+        <Plus className="h-4 w-4" /> Add Spell
+      </Button>
+      {showForm && (
+        <SpellForm
+          onSave={(s) => { store.addSpell(s); setShowForm(false); }}
+          onCancel={() => setShowForm(false)}
+        />
+      )}
+      {store.spells.length > 0 && (
+        <FilterBar>
+          <TabSearch value={search} onChange={setSearch} placeholder="Search spells…" />
+          <FilterChips label="School" options={schools} active={fSchools} onToggle={(v) => setFSchools(tog(fSchools, v))} />
+          <FilterChips label="Level" options={levels} active={fLevels} onToggle={(v) => setFLevels(tog(fLevels, v))} />
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+            <ToggleFilter label="Concentration" value={fConc} onChange={setFConc} />
+            <ToggleFilter label="Ritual" value={fRitual} onChange={setFRitual} />
+          </div>
+        </FilterBar>
+      )}
+      <EntityList
+        items={filtered}
+        renderLabel={(s) =>
+          `${s.school} · ${s.level === "Cantrip" ? "Cantrip" : `Level ${s.level_int}`} · ${s.dnd_class || "—"}`
+        }
+        onRemove={(s) => store.removeSpell(s.slug)}
+      />
+    </>
+  );
+}
+
+function ItemsTab() {
+  const store = useHomebrewStore();
+  const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState("");
+  const [fRarities, setFRarities] = useState<string[]>([]);
+  const [fTypes, setFTypes] = useState<string[]>([]);
+  const [fAttuned, setFAttuned] = useState<boolean | null>(null);
+
+  const RARITY_ORDER = ["Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact"];
+  const presentRarities = new Set(store.items.map((i) => i.rarity));
+  const rarities = RARITY_ORDER.filter((r) => presentRarities.has(r));
+  const types = [...new Set(store.items.map((i) => i.type))].sort();
+
+  const filtered = store.items.filter((i) => {
+    if (search && !i.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (fRarities.length && !fRarities.includes(i.rarity)) return false;
+    if (fTypes.length && !fTypes.includes(i.type)) return false;
+    if (fAttuned !== null && !!i.requires_attunement !== fAttuned) return false;
+    return true;
+  });
+
+  return (
+    <>
+      <Button size="sm" variant="outline" className="gap-2" onClick={() => setShowForm((v) => !v)}>
+        <Plus className="h-4 w-4" /> Add Item
+      </Button>
+      {showForm && (
+        <ItemForm
+          onSave={(item) => { store.addItem(item); setShowForm(false); }}
+          onCancel={() => setShowForm(false)}
+        />
+      )}
+      {store.items.length > 0 && (
+        <FilterBar>
+          <TabSearch value={search} onChange={setSearch} placeholder="Search items…" />
+          <FilterChips label="Rarity" options={rarities} active={fRarities} onToggle={(v) => setFRarities(tog(fRarities, v))} />
+          <FilterChips label="Type" options={types} active={fTypes} onToggle={(v) => setFTypes(tog(fTypes, v))} />
+          <ToggleFilter label="Requires Attunement" value={fAttuned} onChange={setFAttuned} />
+        </FilterBar>
+      )}
+      <EntityList
+        items={filtered}
+        renderLabel={(item) => `${item.rarity} · ${item.type}`}
+        onRemove={(item) => store.removeItem(item.slug)}
+      />
+    </>
+  );
+}
+
+function FeatsTab() {
+  const store = useHomebrewStore();
+  const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState("");
+  const [fPrereq, setFPrereq] = useState<boolean | null>(null);
+
+  const filtered = store.feats.filter((f) => {
+    if (search && !f.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (fPrereq !== null && !!f.prerequisite !== fPrereq) return false;
+    return true;
+  });
+
+  return (
+    <>
+      <Button size="sm" variant="outline" className="gap-2" onClick={() => setShowForm((v) => !v)}>
+        <Plus className="h-4 w-4" /> Add Feat
+      </Button>
+      {showForm && (
+        <FeatForm
+          onSave={(feat) => { store.addFeat(feat); setShowForm(false); }}
+          onCancel={() => setShowForm(false)}
+        />
+      )}
+      {store.feats.length > 0 && (
+        <FilterBar>
+          <TabSearch value={search} onChange={setSearch} placeholder="Search feats…" />
+          <ToggleFilter label="Has Prerequisite" value={fPrereq} onChange={setFPrereq} />
+        </FilterBar>
+      )}
+      <EntityList
+        items={filtered}
+        renderLabel={(feat) => (feat.prerequisite ? `Req: ${feat.prerequisite}` : "No prerequisite")}
+        onRemove={(feat) => store.removeFeat(feat.slug)}
+      />
+    </>
+  );
+}
+
+function SubclassesTab() {
+  const store = useHomebrewStore();
+  const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState("");
+  const [fClasses, setFClasses] = useState<string[]>([]);
+
+  const classes = [...new Set(store.subclasses.map((sc) => sc.className))].sort();
+
+  const filtered = store.subclasses.filter((sc) => {
+    if (search && !sc.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (fClasses.length && !fClasses.includes(sc.className)) return false;
+    return true;
+  });
+
+  return (
+    <>
+      <Button size="sm" variant="outline" className="gap-2" onClick={() => setShowForm((v) => !v)}>
+        <Plus className="h-4 w-4" /> Add Subclass
+      </Button>
+      {showForm && (
+        <SubclassForm
+          onSave={(sc) => { store.addSubclass(sc); setShowForm(false); }}
+          onCancel={() => setShowForm(false)}
+        />
+      )}
+      {store.subclasses.length > 0 && (
+        <FilterBar>
+          <TabSearch value={search} onChange={setSearch} placeholder="Search subclasses…" />
+          <FilterChips label="Class" options={classes} active={fClasses} onToggle={(v) => setFClasses(tog(fClasses, v))} />
+        </FilterBar>
+      )}
+      <EntityList
+        items={filtered}
+        renderLabel={(sc) => `${sc.className}${sc.source ? ` · ${sc.source}` : ""}`}
+        onRemove={(sc) => store.removeSubclass(sc.slug)}
+      />
+    </>
+  );
+}
+
+function MonstersTab() {
+  const store = useHomebrewStore();
+  const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState("");
+  const [fTypes, setFTypes] = useState<string[]>([]);
+  const [fSizes, setFSizes] = useState<string[]>([]);
+  const [fCRs, setFCRs] = useState<string[]>([]);
+  const [typeOpen, setTypeOpen] = useState(false);
+
+  const SIZE_ORDER = ["Tiny", "Small", "Medium", "Large", "Huge", "Gargantuan"];
+  const presentSizes = new Set(store.monsters.map((m) => m.size));
+  const sizes = SIZE_ORDER.filter((s) => presentSizes.has(s));
+  const types = [...new Set(store.monsters.map((m) => m.type))].sort();
+  const crs = [...new Set(store.monsters.map((m) => m.cr))].sort(
+    (a, b) => crToNum(a) - crToNum(b),
+  );
+
+  const filtered = store.monsters.filter((m) => {
+    if (search && !m.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (fTypes.length && !fTypes.includes(m.type)) return false;
+    if (fSizes.length && !fSizes.includes(m.size)) return false;
+    if (fCRs.length && !fCRs.includes(m.cr)) return false;
+    return true;
+  });
+
+  return (
+    <>
+      <Button size="sm" variant="outline" className="gap-2" onClick={() => setShowForm((v) => !v)}>
+        <Plus className="h-4 w-4" /> Add Monster
+      </Button>
+      {showForm && (
+        <MonsterForm
+          onSave={(m) => { store.addMonster(m); setShowForm(false); }}
+          onCancel={() => setShowForm(false)}
+        />
+      )}
+      {store.monsters.length > 0 && (
+        <FilterBar>
+          <TabSearch value={search} onChange={setSearch} placeholder="Search monsters…" />
+          <FilterChips label="Size" options={sizes} active={fSizes} onToggle={(v) => setFSizes(tog(fSizes, v))} />
+          <FilterChips label="CR" options={crs} active={fCRs} onToggle={(v) => setFCRs(tog(fCRs, v))} />
+          {/* Creature type — expandable because there can be many */}
+          {types.length >= 2 && (
+            <div>
+              <button
+                onClick={() => setTypeOpen((v) => !v)}
+                className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {typeOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                Creature Type
+                {fTypes.length > 0 && (
+                  <span className="ml-1 rounded-full bg-primary/20 px-1.5 text-primary">
+                    {fTypes.length}
+                  </span>
+                )}
+              </button>
+              {typeOpen && (
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {types.map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setFTypes(tog(fTypes, t))}
+                      className={`px-2 py-0.5 rounded-full text-xs border transition-colors ${
+                        fTypes.includes(t)
+                          ? "border-primary bg-primary/20 text-primary font-medium"
+                          : "border-border bg-card text-muted-foreground hover:border-primary/50"
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </FilterBar>
+      )}
+      <EntityList
+        items={filtered}
+        renderLabel={(m) =>
+          `CR ${m.cr} · ${m.size} ${m.type}${m.source ? ` · ${m.source}` : ""}`
+        }
+        onRemove={(m) => store.removeMonster(m.slug)}
+      />
+    </>
+  );
+}
+
+function WeaponsTab() {
+  const store = useHomebrewStore();
+  const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState("");
+  const [fCategories, setFCategories] = useState<string[]>([]);
+  const [fDmgTypes, setFDmgTypes] = useState<string[]>([]);
+
+  const categories = [...new Set(store.weapons.map((w) => w.category))].sort();
+  const dmgTypes = [...new Set(store.weapons.map((w) => w.damage_type))].sort();
+
+  const filtered = store.weapons.filter((w) => {
+    if (search && !w.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (fCategories.length && !fCategories.includes(w.category)) return false;
+    if (fDmgTypes.length && !fDmgTypes.includes(w.damage_type)) return false;
+    return true;
+  });
+
+  return (
+    <>
+      <Button size="sm" variant="outline" className="gap-2" onClick={() => setShowForm((v) => !v)}>
+        <Plus className="h-4 w-4" /> Add Weapon
+      </Button>
+      {showForm && (
+        <WeaponForm
+          onSave={(w) => { store.addWeapon(w); setShowForm(false); }}
+          onCancel={() => setShowForm(false)}
+        />
+      )}
+      {store.weapons.length > 0 && (
+        <FilterBar>
+          <TabSearch value={search} onChange={setSearch} placeholder="Search weapons…" />
+          <FilterChips label="Category" options={categories} active={fCategories} onToggle={(v) => setFCategories(tog(fCategories, v))} />
+          <FilterChips label="Damage Type" options={dmgTypes} active={fDmgTypes} onToggle={(v) => setFDmgTypes(tog(fDmgTypes, v))} />
+        </FilterBar>
+      )}
+      <EntityList
+        items={filtered}
+        renderLabel={(w) =>
+          `${w.category} · ${w.damage} ${w.damage_type}${w.properties ? ` · ${w.properties}` : ""}`
+        }
+        onRemove={(w) => store.removeWeapon(w.slug)}
+      />
+    </>
+  );
+}
+
+function RacesTab({ onSwitchToCSV }: { onSwitchToCSV: () => void }) {
+  const store = useHomebrewStore();
+  const [search, setSearch] = useState("");
+  const [fSizes, setFSizes] = useState<string[]>([]);
+  const [fAsi, setFAsi] = useState<string[]>([]);
+
+  const SIZE_ORDER = ["Tiny", "Small", "Medium", "Large", "Huge", "Gargantuan"] as const;
+  const presentSizes = new Set(store.races.map((r) => r.size));
+  const sizes = SIZE_ORDER.filter((s) => presentSizes.has(s)) as string[];
+  const STAT_LABELS: Record<string, string> = {
+    strength: "STR", dexterity: "DEX", constitution: "CON",
+    intelligence: "INT", wisdom: "WIS", charisma: "CHA",
+  };
+  const asiOptions = Object.entries(STAT_LABELS)
+    .filter(([key]) =>
+      store.races.some((r) => ((r.abilityScoreIncrease as Record<string, number>)[key] ?? 0) > 0),
+    )
+    .map(([, abbr]) => abbr);
+
+  const filtered = store.races.filter((r) => {
+    if (search && !r.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (fSizes.length && !fSizes.includes(r.size)) return false;
+    if (fAsi.length) {
+      const asiMap: Record<string, string> = {
+        STR: "strength", DEX: "dexterity", CON: "constitution",
+        INT: "intelligence", WIS: "wisdom", CHA: "charisma",
+      };
+      const hasAsi = fAsi.some(
+        (abbr) => ((r.abilityScoreIncrease as Record<string, number>)[asiMap[abbr]!] ?? 0) > 0,
+      );
+      if (!hasAsi) return false;
+    }
+    return true;
+  });
+
+  return (
+    <>
+      <p className="text-sm text-muted-foreground">
+        Races have nested trait structures. Use{" "}
+        <button onClick={onSwitchToCSV} className="text-primary underline underline-offset-2">
+          CSV import
+        </button>{" "}
+        for bulk entry, or JSON import (via the header button) for full control.
+      </p>
+      {store.races.length > 0 && (
+        <FilterBar>
+          <TabSearch value={search} onChange={setSearch} placeholder="Search races…" />
+          <FilterChips label="Size" options={sizes} active={fSizes} onToggle={(v) => setFSizes(tog(fSizes, v))} />
+          <FilterChips label="ASI" options={asiOptions} active={fAsi} onToggle={(v) => setFAsi(tog(fAsi, v))} />
+        </FilterBar>
+      )}
+      <EntityList
+        items={filtered}
+        renderLabel={(r) =>
+          `${r.size} · ${r.speed} ft.${r.subraces.length > 0 ? ` · ${r.subraces.length} subraces` : ""}`
+        }
+        onRemove={(r) => store.removeRace(r.slug)}
+      />
+    </>
+  );
+}
+
+function BackgroundsTab({ onSwitchToCSV }: { onSwitchToCSV: () => void }) {
+  const store = useHomebrewStore();
+  const [search, setSearch] = useState("");
+  const [fSkills, setFSkills] = useState<string[]>([]);
+  const [fHasTools, setFHasTools] = useState<boolean | null>(null);
+  const [fHasLangs, setFHasLangs] = useState<boolean | null>(null);
+
+  const allSkills = [
+    ...new Set(store.backgrounds.flatMap((b) => b.skillProficiencies)),
+  ].sort();
+
+  const filtered = store.backgrounds.filter((b) => {
+    if (search && !b.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (fSkills.length && !fSkills.some((s) => b.skillProficiencies.includes(s))) return false;
+    if (fHasTools !== null && (b.toolProficiencies.length > 0) !== fHasTools) return false;
+    if (fHasLangs !== null && (b.languages > 0) !== fHasLangs) return false;
+    return true;
+  });
+
+  return (
+    <>
+      <p className="text-sm text-muted-foreground">
+        Use{" "}
+        <button onClick={onSwitchToCSV} className="text-primary underline underline-offset-2">
+          CSV import
+        </button>{" "}
+        for bulk entry, or JSON import for full control.
+      </p>
+      {store.backgrounds.length > 0 && (
+        <FilterBar>
+          <TabSearch value={search} onChange={setSearch} placeholder="Search backgrounds…" />
+          <FilterChips label="Skill" options={allSkills} active={fSkills} onToggle={(v) => setFSkills(tog(fSkills, v))} />
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+            <ToggleFilter label="Tool Proficiency" value={fHasTools} onChange={setFHasTools} />
+            <ToggleFilter label="Language Choice" value={fHasLangs} onChange={setFHasLangs} />
+          </div>
+        </FilterBar>
+      )}
+      <EntityList
+        items={filtered}
+        renderLabel={(b) => `Skills: ${b.skillProficiencies.join(", ") || "—"}`}
+        onRemove={(b) => store.removeBackground(b.slug)}
+      />
+    </>
   );
 }
 
