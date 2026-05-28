@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 const navItems = [
-  { href: "/build", label: "Build", icon: Sword },
+  { href: "/builder", label: "Build", icon: Sword },
   { href: "/characters", label: "Characters", icon: Users },
   { href: "/dm", label: "DM Shield", icon: Shield },
   { href: "/homebrew", label: "Homebrew", icon: Sparkles },

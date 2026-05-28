@@ -76,7 +76,7 @@ export default function CharactersPage() {
             className="hidden"
             onChange={handleInputChange}
           />
-          <Button variant="gold" size="sm" className="gap-2" onClick={() => router.push("/build")}>
+          <Button variant="gold" size="sm" className="gap-2" onClick={() => router.push("/builder")}>
             <Plus className="h-4 w-4" />
             New Character
           </Button>
@@ -101,7 +101,7 @@ export default function CharactersPage() {
         {characters.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 gap-3 text-muted-foreground">
             <p className="text-sm">No characters yet. Build one or drop a JSON file here.</p>
-            <Button variant="gold" onClick={() => router.push("/build")} className="gap-2">
+            <Button variant="gold" onClick={() => router.push("/builder")} className="gap-2">
               <Plus className="h-4 w-4" />
               Build Your First Character
             </Button>

@@ -7,7 +7,7 @@ const features = [
     icon: Sword,
     title: "Character Builder",
     desc: "10-step guided creation: race, class, subclass, ability scores, skills, equipment, spells, and backstory.",
-    href: "/build",
+    href: "/builder",
     cta: "Start Building",
   },
   {
@@ -66,7 +66,7 @@ export default function HomePage() {
           </p>
           <div className="flex gap-3 justify-center flex-wrap">
             <Button asChild size="lg" variant="gold" className="gap-2">
-              <Link href="/build">
+              <Link href="/builder">
                 <Sword className="h-4 w-4" />
                 Build a Character
               </Link>
