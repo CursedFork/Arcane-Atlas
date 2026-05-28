@@ -48,6 +48,9 @@ import {
   FileSpreadsheet,
   CheckCircle2,
   AlertCircle,
+  Inbox,
+  Loader2,
+  SkipForward,
 } from "lucide-react";
 import { SPELL_SCHOOLS } from "@/lib/srd/index";
 
@@ -114,16 +117,53 @@ const TEMPLATE_NAMES: Record<Tab, string> = {
   backgrounds: "background-template.csv",
 };
 
+// ── Bulk drop types & helpers ─────────────────────────────────────────────────
+
+interface BulkFileResult {
+  filename: string;
+  type: Tab | "unknown";
+  added: number;
+  errors: { row: number; name: string; message: string }[];
+  skipped?: string;
+}
+
+function detectContentType(filename: string, firstLine: string): Tab | "unknown" {
+  const lower = filename.toLowerCase();
+  if (lower.includes("monster")) return "monsters";
+  if (lower.includes("spell")) return "spells";
+  if (lower.includes("weapon")) return "weapons";
+  if (lower.includes("item")) return "items";
+  if (lower.includes("feat")) return "feats";
+  if (lower.includes("subclass")) return "subclasses";
+  if (lower.includes("background")) return "backgrounds";
+  if (lower.includes("race")) return "races";
+  // Header-based fallback
+  const h = firstLine.toLowerCase();
+  if (h.includes("casting time") || h.includes("school")) return "spells";
+  if (h.includes("cr") && h.includes("str")) return "monsters";
+  if (h.includes("damage type")) return "weapons";
+  if (h.includes("str bonus")) return "races";
+  if (h.includes("skill proficiencies") || h.includes("feature name")) return "backgrounds";
+  if (h.includes("class") && h.includes("features")) return "subclasses";
+  if (h.includes("prerequisite")) return "feats";
+  if (h.includes("rarity") && h.includes("type")) return "items";
+  return "unknown";
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function HomebrewPage() {
   const store = useHomebrewStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const csvInputRef = useRef<HTMLInputElement>(null);
+  const bulkDropInputRef = useRef<HTMLInputElement>(null);
 
   const [tab, setTab] = useState<Tab>("spells");
   const [mode, setMode] = useState<Mode>("manual");
   const [importError, setImportError] = useState<string | null>(null);
+  const [bulkResults, setBulkResults] = useState<BulkFileResult[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
   const [csvResult, setCsvResult] = useState<{
     added: number;
     errors: { row: number; name: string; message: string }[];
@@ -259,6 +299,45 @@ export default function HomebrewPage() {
     if (csvInputRef.current) csvInputRef.current.value = "";
   };
 
+  // ── Bulk drop handler ────────────────────────────────────────────────────────
+
+  const processBulkFiles = async (fileList: FileList) => {
+    setIsBulkProcessing(true);
+    const results: BulkFileResult[] = [];
+    for (const file of Array.from(fileList)) {
+      if (!file.name.toLowerCase().endsWith(".csv")) {
+        results.push({ filename: file.name, type: "unknown", added: 0, errors: [], skipped: "Not a CSV file" });
+        continue;
+      }
+      if (file.size > 2_097_152) {
+        results.push({ filename: file.name, type: "unknown", added: 0, errors: [], skipped: "Exceeds 2 MB limit" });
+        continue;
+      }
+      const text = await file.text();
+      const firstLine = text.split("\n")[0] ?? "";
+      const type = detectContentType(file.name, firstLine);
+      if (type === "unknown") {
+        results.push({ filename: file.name, type: "unknown", added: 0, errors: [], skipped: "Could not detect content type" });
+        continue;
+      }
+      let added = 0;
+      let errors: BulkFileResult["errors"] = [];
+      switch (type) {
+        case "spells":     { const r = importSpellsFromCSV(text);     r.ok.forEach((s) => store.addSpell(s));      added = r.ok.length; errors = r.errors; break; }
+        case "items":      { const r = importItemsFromCSV(text);      r.ok.forEach((s) => store.addItem(s));       added = r.ok.length; errors = r.errors; break; }
+        case "feats":      { const r = importFeatsFromCSV(text);      r.ok.forEach((s) => store.addFeat(s));       added = r.ok.length; errors = r.errors; break; }
+        case "subclasses": { const r = importSubclassesFromCSV(text); r.ok.forEach((s) => store.addSubclass(s));  added = r.ok.length; errors = r.errors; break; }
+        case "monsters":   { const r = importMonstersFromCSV(text);   r.ok.forEach((s) => store.addMonster(s));   added = r.ok.length; errors = r.errors; break; }
+        case "weapons":    { const r = importWeaponsFromCSV(text);    r.ok.forEach((s) => store.addWeapon(s));    added = r.ok.length; errors = r.errors; break; }
+        case "races":      { const r = importRacesFromCSV(text);      r.ok.forEach((s) => store.addRace(s));      added = r.ok.length; errors = r.errors; break; }
+        case "backgrounds":{ const r = importBackgroundsFromCSV(text);r.ok.forEach((s) => store.addBackground(s));added = r.ok.length; errors = r.errors; break; }
+      }
+      results.push({ filename: file.name, type, added, errors });
+    }
+    setBulkResults(results);
+    setIsBulkProcessing(false);
+  };
+
   const changeTab = (t: Tab) => {
     setTab(t);
     setCsvResult(null);
@@ -308,6 +387,33 @@ export default function HomebrewPage() {
               e.target.value = "";
             }}
           />
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            disabled={isBulkProcessing}
+            onClick={() => bulkDropInputRef.current?.click()}
+          >
+            {isBulkProcessing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileSpreadsheet className="h-4 w-4" />
+            )}
+            Import CSVs
+          </Button>
+          <input
+            ref={bulkDropInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files && e.target.files.length > 0) {
+                processBulkFiles(e.target.files);
+                e.target.value = "";
+              }
+            }}
+          />
           {totalCount > 0 && (
             <Button
               variant="destructive"
@@ -327,6 +433,11 @@ export default function HomebrewPage() {
         <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {importError}
         </div>
+      )}
+
+      {/* Bulk import results */}
+      {bulkResults.length > 0 && !isBulkProcessing && (
+        <BulkResultsList results={bulkResults} onDismiss={() => setBulkResults([])} />
       )}
 
       {/* Entity tabs — horizontally scrollable on small screens */}
@@ -1372,6 +1483,118 @@ function MonsterForm({
         <Button size="sm" variant="ghost" onClick={onCancel}>
           Cancel
         </Button>
+      </div>
+    </div>
+  );
+}
+
+// ── Bulk results list ─────────────────────────────────────────────────────────
+
+const TYPE_LABEL: Record<Tab | "unknown", string> = {
+  spells: "Spells",
+  items: "Items",
+  feats: "Feats",
+  subclasses: "Subclasses",
+  monsters: "Monsters",
+  weapons: "Weapons",
+  races: "Races",
+  backgrounds: "Backgrounds",
+  unknown: "Unknown",
+};
+
+function BulkResultsList({
+  results,
+  onDismiss,
+}: {
+  results: BulkFileResult[];
+  onDismiss: () => void;
+}) {
+  const totalAdded = results.reduce((sum, r) => sum + r.added, 0);
+  const totalErrors = results.reduce((sum, r) => sum + r.errors.length, 0);
+  const skippedFiles = results.filter((r) => r.skipped);
+
+  return (
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      {/* Summary bar */}
+      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-border bg-secondary/30">
+        <div className="flex items-center gap-3 flex-wrap">
+          {totalAdded > 0 && (
+            <span className="flex items-center gap-1.5 text-sm text-green-400">
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
+              {totalAdded} record{totalAdded !== 1 ? "s" : ""} imported
+            </span>
+          )}
+          {totalErrors > 0 && (
+            <span className="flex items-center gap-1.5 text-sm text-destructive">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              {totalErrors} row{totalErrors !== 1 ? "s" : ""} skipped
+            </span>
+          )}
+          {skippedFiles.length > 0 && (
+            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <SkipForward className="h-4 w-4 shrink-0" />
+              {skippedFiles.length} file{skippedFiles.length !== 1 ? "s" : ""} skipped
+            </span>
+          )}
+        </div>
+        <button
+          onClick={onDismiss}
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0"
+        >
+          Dismiss
+        </button>
+      </div>
+
+      {/* Per-file breakdown */}
+      <div className="divide-y divide-border">
+        {results.map((r, i) => (
+          <div key={i} className="px-4 py-3 space-y-1.5">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <span className="text-sm font-medium text-foreground truncate block">
+                  {r.filename}
+                </span>
+                {!r.skipped && (
+                  <span className="text-xs text-muted-foreground">
+                    Detected as{" "}
+                    <span className="text-foreground font-medium">{TYPE_LABEL[r.type]}</span>
+                    {r.added > 0 && (
+                      <span className="text-green-400">
+                        {" "}· {r.added} imported
+                      </span>
+                    )}
+                    {r.errors.length > 0 && (
+                      <span className="text-destructive">
+                        {" "}· {r.errors.length} error{r.errors.length !== 1 ? "s" : ""}
+                      </span>
+                    )}
+                  </span>
+                )}
+                {r.skipped && (
+                  <span className="text-xs text-muted-foreground">
+                    Skipped — {r.skipped}
+                  </span>
+                )}
+              </div>
+              {!r.skipped && r.added > 0 && (
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-green-400 mt-0.5" />
+              )}
+              {r.skipped && (
+                <SkipForward className="h-4 w-4 shrink-0 text-muted-foreground mt-0.5" />
+              )}
+            </div>
+            {r.errors.length > 0 && (
+              <div className="rounded bg-destructive/10 px-3 py-2 max-h-32 overflow-y-auto space-y-0.5">
+                {r.errors.map((e) => (
+                  <p key={e.row} className="text-xs text-destructive/80">
+                    <span className="font-medium">Row {e.row} ({e.name || "unnamed"}):</span>{" "}
+                    {e.message}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
