@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 export const metadata = { title: "Credits & License — Arcane Atlas" };
 
 export default function CreditsPage() {

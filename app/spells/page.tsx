@@ -3,7 +3,6 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import spellsData from "@/data/srd/spells.json";
-import homebrewData from "@/data/srd/spells.json"; // placeholder; homebrew spells come from store
 import { type Spell } from "@/lib/schemas/spell";
 import { useHomebrewStore } from "@/store/homebrewStore";
 import { Input } from "@/components/ui/input";

@@ -4,7 +4,7 @@ import { useBuilderStore } from "@/store/builderStore";
 import { getRace } from "@/lib/srd/races";
 import { getClass } from "@/lib/srd/classes";
 import { getBackground } from "@/lib/srd/backgrounds";
-import { abilityModifier, formatModifier, capitalize } from "@/lib/utils";
+import { abilityModifier, formatModifier } from "@/lib/utils";
 import { ABILITY_KEYS } from "@/lib/schemas/character";
 
 const ABILITY_ABBREV: Record<string, string> = {

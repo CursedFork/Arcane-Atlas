@@ -8,7 +8,7 @@ import monstersData from "@/data/srd/monsters.json";
 import { type Spell } from "@/lib/schemas/spell";
 import { type Monster } from "@/lib/schemas/monster";
 import { ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
-import { cn, abilityModifier, formatModifier } from "@/lib/utils";
+import { abilityModifier, formatModifier } from "@/lib/utils";
 import { ABILITY_KEYS } from "@/lib/schemas/character";
 
 const allSpells = spellsData as Spell[];

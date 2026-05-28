@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useDmStore, type Combatant } from "@/store/dmStore";
+import { useDmStore } from "@/store/dmStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +36,6 @@ export function InitiativeTracker() {
   const [form, setForm] = useState<AddForm>(defaultForm);
   const [showAdd, setShowAdd] = useState(false);
   const [monsterSuggestions, setMonsterSuggestions] = useState<Monster[]>([]);
-  const [hpEdit, setHpEdit] = useState<Record<string, string>>({});
   const [dmgInput, setDmgInput] = useState<Record<string, string>>({});
 
   const handleMonsterSearch = (q: string) => {
@@ -91,8 +90,6 @@ export function InitiativeTracker() {
     else store.applyDamage(id, val);
     setDmgInput((prev) => ({ ...prev, [id]: "" }));
   };
-
-  const currentCombatant = store.combatants[store.currentTurnIndex];
 
   return (
     <div className="flex flex-col gap-3 h-full">

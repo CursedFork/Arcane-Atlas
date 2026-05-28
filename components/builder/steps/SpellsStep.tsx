@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useBuilderStore } from "@/store/builderStore";
 import { useHomebrewStore } from "@/store/homebrewStore";
 import { getClass } from "@/lib/srd/classes";

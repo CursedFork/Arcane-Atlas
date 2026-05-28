@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { ABILITY_KEYS } from "@/lib/schemas/character";
-import { useHomebrewStore } from "@/store/homebrewStore";
 
 const ABILITY_ABBREV: Record<string, string> = {
   strength: "STR", dexterity: "DEX", constitution: "CON",
@@ -17,18 +16,11 @@ const ABILITY_ABBREV: Record<string, string> = {
 
 export function RaceStep() {
   const { race, subrace, flexibleBoosts, setRace, nextStep } = useBuilderStore();
-  const homebrewRaces = useHomebrewStore((s) => s.races);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [selectedSubrace, setSelectedSubrace] = useState(subrace);
   const [localFlexible, setLocalFlexible] = useState<Record<string, number>>(flexibleBoosts);
 
   const allRaces = [...SRD_RACES.map((r) => ({ ...r, isHomebrew: false }))];
-
-  function handleSelect(r: SRDRace & { isHomebrew: boolean }) {
-    setExpanded(r.slug);
-    setSelectedSubrace("");
-    setLocalFlexible({});
-  }
 
   function handleConfirm(r: SRDRace & { isHomebrew: boolean }) {
     setRace(r.slug, selectedSubrace, localFlexible);
@@ -51,7 +43,7 @@ export function RaceStep() {
       <div>
         <h2 className="font-display text-2xl text-foreground">Choose Your Race</h2>
         <p className="text-muted-foreground text-sm mt-1">
-          Your race determines some of your character's traits and capabilities.
+          Your race determines some of your character&apos;s traits and capabilities.
         </p>
       </div>
 

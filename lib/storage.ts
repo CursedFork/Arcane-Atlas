@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import { type Character, CharacterSchema } from "./schemas/character";
 import { type HomebrewCollection, HomebrewCollectionSchema } from "./schemas/homebrew";
 
@@ -45,7 +46,6 @@ export function deleteCharacter(id: string): void {
 }
 
 export function duplicateCharacter(id: string): Character | null {
-  const { v4: uuidv4 } = require("uuid") as { v4: () => string };
   const characters = loadCharacters();
   const original = characters.find((c) => c.id === id);
   if (!original) return null;

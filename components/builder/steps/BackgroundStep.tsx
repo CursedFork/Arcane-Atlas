@@ -17,7 +17,7 @@ export function BackgroundStep() {
       <div>
         <h2 className="font-display text-2xl text-foreground">Choose Your Background</h2>
         <p className="text-muted-foreground text-sm mt-1">
-          Your background defines your character's history and provides skill proficiencies and a special feature.
+          Your background defines your character&apos;s history and provides skill proficiencies and a special feature.
         </p>
       </div>
 

@@ -6,7 +6,7 @@ import { getClass } from "@/lib/srd/classes";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Copy, Download, FileDown } from "lucide-react";
+import { Trash2, Copy, Download } from "lucide-react";
 import { exportCharacterJSON } from "@/lib/storage";
 import { abilityModifier, formatModifier } from "@/lib/utils";
 import { ABILITY_KEYS } from "@/lib/schemas/character";

@@ -27,7 +27,6 @@ const ABILITY_ABBREV: Record<string, string> = {
 export function ReviewStep() {
   const store = useBuilderStore();
   const router = useRouter();
-  const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
   const finalScores = store.getFinalAbilityScores();
@@ -39,7 +38,6 @@ export function ReviewStep() {
   const handleSave = () => {
     try {
       saveCharacter(character);
-      setSaved(true);
       store.resetBuilder();
       router.push("/characters");
     } catch {

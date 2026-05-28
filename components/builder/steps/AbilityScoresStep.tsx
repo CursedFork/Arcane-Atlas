@@ -31,7 +31,6 @@ const ABILITY_ABBREV: Record<AbilityKey, string> = {
   intelligence: "INT", wisdom: "WIS", charisma: "CHA",
 };
 
-const STANDARD_ARRAY_LABELS = ["15", "14", "13", "12", "10", "8"];
 
 export function AbilityScoresStep() {
   const { abilityScoreMethod, baseAbilityScores, setAbilityScoreMethod, setBaseAbilityScores, nextStep, getFinalAbilityScores } =
