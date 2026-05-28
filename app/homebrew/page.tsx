@@ -16,6 +16,8 @@ import {
   type HomebrewSubclass,
   type HomebrewMonster,
   type HomebrewWeapon,
+  type HomebrewRace,
+  type HomebrewBackground,
 } from "@/lib/schemas/homebrew";
 import {
   importSpellsFromCSV,
@@ -624,12 +626,16 @@ function CsvResults({
 function EntityList<T extends { slug: string; name: string }>({
   items,
   renderLabel,
+  renderDetail,
   onRemove,
 }: {
   items: T[];
   renderLabel: (item: T) => string;
+  renderDetail?: (item: T) => React.ReactNode;
   onRemove: (item: T) => void;
 }) {
+  const [expanded, setExpanded] = useState<string | null>(null);
+
   if (items.length === 0)
     return (
       <p className="text-sm text-muted-foreground py-4">
@@ -638,25 +644,59 @@ function EntityList<T extends { slug: string; name: string }>({
     );
   return (
     <div className="space-y-1.5">
-      {items.map((item) => (
-        <div
-          key={item.slug}
-          className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3"
-        >
-          <div className="min-w-0">
-            <span className="font-medium text-foreground">{item.name}</span>
-            <span className="ml-3 text-xs text-muted-foreground truncate">
-              {renderLabel(item)}
-            </span>
-          </div>
-          <button
-            onClick={() => onRemove(item)}
-            className="ml-3 shrink-0 text-muted-foreground hover:text-destructive transition-colors"
+      {items.map((item) => {
+        const isOpen = expanded === item.slug;
+        return (
+          <div
+            key={item.slug}
+            className="rounded-lg border border-border bg-card overflow-hidden"
           >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </div>
-      ))}
+            {/* Row header */}
+            <div
+              className={`flex items-center justify-between px-4 py-3 ${
+                renderDetail
+                  ? "cursor-pointer hover:bg-secondary/30 transition-colors select-none"
+                  : ""
+              }`}
+              onClick={() =>
+                renderDetail &&
+                setExpanded(isOpen ? null : item.slug)
+              }
+            >
+              <div className="min-w-0 flex-1">
+                <span className="font-medium text-foreground">{item.name}</span>
+                <span className="ml-3 text-xs text-muted-foreground truncate">
+                  {renderLabel(item)}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 ml-3 shrink-0">
+                {renderDetail &&
+                  (isOpen ? (
+                    <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  ))}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove(item);
+                  }}
+                  className="text-muted-foreground hover:text-destructive transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Expanded detail panel */}
+            {renderDetail && isOpen && (
+              <div className="border-t border-border/50 px-4 py-3 bg-secondary/10">
+                {renderDetail(item)}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -1366,6 +1406,305 @@ function BulkResultsList({
   );
 }
 
+// ── Detail view components ────────────────────────────────────────────────────
+
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <span className="text-xs text-muted-foreground">
+      <span className="font-semibold text-foreground/80">{label}: </span>
+      {value}
+    </span>
+  );
+}
+
+function SpellDetail({ item }: { item: HomebrewSpell }) {
+  return (
+    <div className="space-y-2 text-sm">
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        <DetailRow label="Casting Time" value={item.casting_time} />
+        <DetailRow label="Range" value={item.range} />
+        <DetailRow label="Duration" value={item.duration} />
+        <DetailRow label="Components" value={item.components} />
+        {item.concentration === "yes" && (
+          <span className="text-xs text-amber-400 font-medium">Concentration</span>
+        )}
+        {item.ritual === "yes" && (
+          <span className="text-xs text-amber-400 font-medium">Ritual</span>
+        )}
+        {item.dnd_class && <DetailRow label="Classes" value={item.dnd_class} />}
+      </div>
+      <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+        {item.desc}
+      </p>
+      {item.higher_level && (
+        <div className="border-t border-border/30 pt-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+            At Higher Levels
+          </p>
+          <p className="text-xs text-muted-foreground leading-relaxed">{item.higher_level}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ItemDetail({ item }: { item: HomebrewItem }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        <DetailRow label="Type" value={item.type} />
+        <DetailRow label="Rarity" value={item.rarity} />
+        {item.requires_attunement && (
+          <span className="text-xs text-amber-400 font-medium">
+            {item.requires_attunement}
+          </span>
+        )}
+      </div>
+      <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+        {item.desc}
+      </p>
+    </div>
+  );
+}
+
+function FeatDetail({ item }: { item: HomebrewFeat }) {
+  return (
+    <div className="space-y-2">
+      {item.prerequisite && (
+        <DetailRow label="Prerequisite" value={item.prerequisite} />
+      )}
+      <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+        {item.desc}
+      </p>
+    </div>
+  );
+}
+
+function SubclassDetail({ item }: { item: HomebrewSubclass }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        <DetailRow label="Class" value={item.className} />
+        {item.source && <DetailRow label="Source" value={item.source} />}
+      </div>
+      {item.desc && (
+        <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+      )}
+      {item.features && (
+        <div className="border-t border-border/30 pt-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+            Features
+          </p>
+          <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">
+            {item.features}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function statMod(score: number): string {
+  const m = Math.floor((score - 10) / 2);
+  return m >= 0 ? `+${m}` : String(m);
+}
+
+function MonsterDetail({ item }: { item: HomebrewMonster }) {
+  const stats: { key: keyof typeof item; label: string }[] = [
+    { key: "str", label: "STR" },
+    { key: "dex", label: "DEX" },
+    { key: "con", label: "CON" },
+    { key: "int", label: "INT" },
+    { key: "wis", label: "WIS" },
+    { key: "cha", label: "CHA" },
+  ];
+
+  return (
+    <div className="space-y-3 text-sm">
+      {/* Creature identity */}
+      <p className="text-xs text-muted-foreground italic">
+        {item.size} {item.type}, {item.alignment}
+      </p>
+
+      {/* Core combat stats */}
+      <div className="grid grid-cols-3 gap-3 text-xs">
+        <div>
+          <p className="text-muted-foreground uppercase tracking-wide text-[10px]">Armor Class</p>
+          <p className="font-bold text-foreground text-base">{item.ac}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground uppercase tracking-wide text-[10px]">Hit Points</p>
+          <p className="font-bold text-foreground text-base">{item.hp}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground uppercase tracking-wide text-[10px]">Speed</p>
+          <p className="font-bold text-foreground text-base">{item.speed}</p>
+        </div>
+      </div>
+
+      {/* Ability scores */}
+      <div className="rounded-md border border-border/50 bg-secondary/30 p-2">
+        <div className="grid grid-cols-6 gap-1 text-center">
+          {stats.map(({ key, label }) => {
+            const score = item[key] as number;
+            return (
+              <div key={key} className="space-y-0.5">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {label}
+                </p>
+                <p className="text-sm font-bold text-foreground">{score}</p>
+                <p className="text-xs text-muted-foreground">{statMod(score)}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* CR */}
+      <p className="text-xs">
+        <span className="font-semibold text-foreground/80">Challenge: </span>
+        <span className="text-muted-foreground">{item.cr}</span>
+      </p>
+
+      {/* Special abilities */}
+      {item.special_abilities && (
+        <div className="border-t border-border/30 pt-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+            Special Abilities
+          </p>
+          <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">
+            {item.special_abilities}
+          </p>
+        </div>
+      )}
+
+      {/* Actions */}
+      {item.actions && (
+        <div className="border-t border-border/30 pt-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+            Actions
+          </p>
+          <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">
+            {item.actions}
+          </p>
+        </div>
+      )}
+
+      {/* Lore / notes */}
+      {item.desc && (
+        <div className="border-t border-border/30 pt-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+            Notes
+          </p>
+          <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+        </div>
+      )}
+
+      {item.source && (
+        <p className="text-xs text-muted-foreground/60 border-t border-border/30 pt-1">
+          Source: {item.source}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function WeaponDetail({ item }: { item: HomebrewWeapon }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        <DetailRow label="Category" value={item.category} />
+        <DetailRow label="Damage" value={`${item.damage} ${item.damage_type}`} />
+        {item.properties && <DetailRow label="Properties" value={item.properties} />}
+        {item.weight && <DetailRow label="Weight" value={item.weight} />}
+        {item.cost && <DetailRow label="Cost" value={item.cost} />}
+      </div>
+      {item.desc && (
+        <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+          {item.desc}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function RaceDetail({ item }: { item: HomebrewRace }) {
+  const STAT_LABELS: Record<string, string> = {
+    strength: "STR", dexterity: "DEX", constitution: "CON",
+    intelligence: "INT", wisdom: "WIS", charisma: "CHA",
+  };
+  const bonuses = Object.entries(item.abilityScoreIncrease)
+    .filter(([, v]) => v > 0)
+    .map(([k, v]) => `+${v} ${STAT_LABELS[k] ?? k}`)
+    .join(", ");
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        <DetailRow label="Size" value={item.size} />
+        <DetailRow label="Speed" value={`${item.speed} ft.`} />
+        {bonuses && <DetailRow label="Ability Score Increases" value={bonuses} />}
+        {item.languages.length > 0 && (
+          <DetailRow label="Languages" value={item.languages.join(", ")} />
+        )}
+      </div>
+      {item.traits.length > 0 && (
+        <div className="border-t border-border/30 pt-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+            Racial Traits
+          </p>
+          <ul className="space-y-1.5">
+            {item.traits.map((t) => (
+              <li key={t.name} className="text-xs">
+                <span className="font-semibold text-foreground/90">{t.name}.</span>{" "}
+                <span className="text-muted-foreground">{t.desc}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {item.subraces.length > 0 && (
+        <p className="text-xs text-muted-foreground border-t border-border/30 pt-2">
+          <span className="font-semibold text-foreground/80">Subraces: </span>
+          {item.subraces.join(", ")}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function BackgroundDetail({ item }: { item: HomebrewBackground }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        {item.skillProficiencies.length > 0 && (
+          <DetailRow label="Skills" value={item.skillProficiencies.join(", ")} />
+        )}
+        {item.toolProficiencies.length > 0 && (
+          <DetailRow label="Tools" value={item.toolProficiencies.join(", ")} />
+        )}
+        {item.languages > 0 && (
+          <DetailRow
+            label="Languages"
+            value={`${item.languages} of your choice`}
+          />
+        )}
+      </div>
+      {item.equipment.length > 0 && (
+        <DetailRow label="Equipment" value={item.equipment.join(", ")} />
+      )}
+      <div className="border-t border-border/30 pt-2">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+          Feature: {item.feature.name}
+        </p>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          {item.feature.desc}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ── Filter primitives ─────────────────────────────────────────────────────────
 
 function TabSearch({
@@ -1542,6 +1881,7 @@ function SpellsTab() {
         renderLabel={(s) =>
           `${s.school} · ${s.level === "Cantrip" ? "Cantrip" : `Level ${s.level_int}`} · ${s.dnd_class || "—"}`
         }
+        renderDetail={(s) => <SpellDetail item={s} />}
         onRemove={(s) => store.removeSpell(s.slug)}
       />
     </>
@@ -1591,6 +1931,7 @@ function ItemsTab() {
       <EntityList
         items={filtered}
         renderLabel={(item) => `${item.rarity} · ${item.type}`}
+        renderDetail={(item) => <ItemDetail item={item} />}
         onRemove={(item) => store.removeItem(item.slug)}
       />
     </>
@@ -1629,6 +1970,7 @@ function FeatsTab() {
       <EntityList
         items={filtered}
         renderLabel={(feat) => (feat.prerequisite ? `Req: ${feat.prerequisite}` : "No prerequisite")}
+        renderDetail={(feat) => <FeatDetail item={feat} />}
         onRemove={(feat) => store.removeFeat(feat.slug)}
       />
     </>
@@ -1669,6 +2011,7 @@ function SubclassesTab() {
       <EntityList
         items={filtered}
         renderLabel={(sc) => `${sc.className}${sc.source ? ` · ${sc.source}` : ""}`}
+        renderDetail={(sc) => <SubclassDetail item={sc} />}
         onRemove={(sc) => store.removeSubclass(sc.slug)}
       />
     </>
@@ -1757,6 +2100,7 @@ function MonstersTab() {
         renderLabel={(m) =>
           `CR ${m.cr} · ${m.size} ${m.type}${m.source ? ` · ${m.source}` : ""}`
         }
+        renderDetail={(m) => <MonsterDetail item={m} />}
         onRemove={(m) => store.removeMonster(m.slug)}
       />
     </>
@@ -1803,6 +2147,7 @@ function WeaponsTab() {
         renderLabel={(w) =>
           `${w.category} · ${w.damage} ${w.damage_type}${w.properties ? ` · ${w.properties}` : ""}`
         }
+        renderDetail={(w) => <WeaponDetail item={w} />}
         onRemove={(w) => store.removeWeapon(w.slug)}
       />
     </>
@@ -1865,6 +2210,7 @@ function RacesTab({ onSwitchToCSV }: { onSwitchToCSV: () => void }) {
         renderLabel={(r) =>
           `${r.size} · ${r.speed} ft.${r.subraces.length > 0 ? ` · ${r.subraces.length} subraces` : ""}`
         }
+        renderDetail={(r) => <RaceDetail item={r} />}
         onRemove={(r) => store.removeRace(r.slug)}
       />
     </>
@@ -1912,6 +2258,7 @@ function BackgroundsTab({ onSwitchToCSV }: { onSwitchToCSV: () => void }) {
       <EntityList
         items={filtered}
         renderLabel={(b) => `Skills: ${b.skillProficiencies.join(", ") || "—"}`}
+        renderDetail={(b) => <BackgroundDetail item={b} />}
         onRemove={(b) => store.removeBackground(b.slug)}
       />
     </>
