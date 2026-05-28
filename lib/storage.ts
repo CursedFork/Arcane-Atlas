@@ -99,19 +99,28 @@ export async function importCharacterJSON(
 
 // ── Homebrew ──────────────────────────────────────────────────────────────────
 
+const emptyCollection = (): HomebrewCollection => ({
+  spells: [],
+  races: [],
+  items: [],
+  backgrounds: [],
+  feats: [],
+  subclasses: [],
+  monsters: [],
+  weapons: [],
+});
+
 export function loadHomebrew(): HomebrewCollection {
-  if (typeof window === "undefined") {
-    return { spells: [], races: [], items: [], backgrounds: [], feats: [] };
-  }
+  if (typeof window === "undefined") return emptyCollection();
   try {
     const raw = localStorage.getItem(HOMEBREW_KEY);
-    if (!raw) return { spells: [], races: [], items: [], backgrounds: [], feats: [] };
+    if (!raw) return emptyCollection();
     const parsed: unknown = JSON.parse(raw);
     const result = HomebrewCollectionSchema.safeParse(parsed);
     if (result.success) return result.data;
-    return { spells: [], races: [], items: [], backgrounds: [], feats: [] };
+    return emptyCollection();
   } catch {
-    return { spells: [], races: [], items: [], backgrounds: [], feats: [] };
+    return emptyCollection();
   }
 }
 

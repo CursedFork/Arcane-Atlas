@@ -9,6 +9,9 @@ import {
   type HomebrewItem,
   type HomebrewBackground,
   type HomebrewFeat,
+  type HomebrewSubclass,
+  type HomebrewMonster,
+  type HomebrewWeapon,
 } from "@/lib/schemas/homebrew";
 
 interface HomebrewState extends HomebrewCollection {
@@ -28,30 +31,41 @@ interface HomebrewState extends HomebrewCollection {
   addFeat: (feat: HomebrewFeat) => void;
   removeFeat: (slug: string) => void;
 
+  addSubclass: (sc: HomebrewSubclass) => void;
+  removeSubclass: (slug: string) => void;
+
+  addMonster: (m: HomebrewMonster) => void;
+  removeMonster: (slug: string) => void;
+
+  addWeapon: (w: HomebrewWeapon) => void;
+  removeWeapon: (slug: string) => void;
+
   importCollection: (collection: HomebrewCollection) => void;
   resetHomebrew: () => void;
 }
 
+const emptyState = {
+  spells: [] as HomebrewSpell[],
+  races: [] as HomebrewRace[],
+  items: [] as HomebrewItem[],
+  backgrounds: [] as HomebrewBackground[],
+  feats: [] as HomebrewFeat[],
+  subclasses: [] as HomebrewSubclass[],
+  monsters: [] as HomebrewMonster[],
+  weapons: [] as HomebrewWeapon[],
+};
+
 export const useHomebrewStore = create<HomebrewState>()(
   persist(
     (set) => ({
-      spells: [],
-      races: [],
-      items: [],
-      backgrounds: [],
-      feats: [],
+      ...emptyState,
 
       addSpell: (spell) =>
         set((state) => ({
-          spells: [
-            ...state.spells.filter((s) => s.slug !== spell.slug),
-            spell,
-          ],
+          spells: [...state.spells.filter((s) => s.slug !== spell.slug), spell],
         })),
-
       removeSpell: (slug) =>
         set((state) => ({ spells: state.spells.filter((s) => s.slug !== slug) })),
-
       updateSpell: (slug, spell) =>
         set((state) => ({
           spells: state.spells.map((s) => (s.slug === slug ? spell : s)),
@@ -61,7 +75,6 @@ export const useHomebrewStore = create<HomebrewState>()(
         set((state) => ({
           races: [...state.races.filter((r) => r.slug !== race.slug), race],
         })),
-
       removeRace: (slug) =>
         set((state) => ({ races: state.races.filter((r) => r.slug !== slug) })),
 
@@ -69,7 +82,6 @@ export const useHomebrewStore = create<HomebrewState>()(
         set((state) => ({
           items: [...state.items.filter((i) => i.slug !== item.slug), item],
         })),
-
       removeItem: (slug) =>
         set((state) => ({ items: state.items.filter((i) => i.slug !== slug) })),
 
@@ -77,17 +89,44 @@ export const useHomebrewStore = create<HomebrewState>()(
         set((state) => ({
           backgrounds: [...state.backgrounds.filter((b) => b.slug !== bg.slug), bg],
         })),
-
       removeBackground: (slug) =>
-        set((state) => ({ backgrounds: state.backgrounds.filter((b) => b.slug !== slug) })),
+        set((state) => ({
+          backgrounds: state.backgrounds.filter((b) => b.slug !== slug),
+        })),
 
       addFeat: (feat) =>
         set((state) => ({
           feats: [...state.feats.filter((f) => f.slug !== feat.slug), feat],
         })),
-
       removeFeat: (slug) =>
         set((state) => ({ feats: state.feats.filter((f) => f.slug !== slug) })),
+
+      addSubclass: (sc) =>
+        set((state) => ({
+          subclasses: [...state.subclasses.filter((s) => s.slug !== sc.slug), sc],
+        })),
+      removeSubclass: (slug) =>
+        set((state) => ({
+          subclasses: state.subclasses.filter((s) => s.slug !== slug),
+        })),
+
+      addMonster: (m) =>
+        set((state) => ({
+          monsters: [...state.monsters.filter((x) => x.slug !== m.slug), m],
+        })),
+      removeMonster: (slug) =>
+        set((state) => ({
+          monsters: state.monsters.filter((m) => m.slug !== slug),
+        })),
+
+      addWeapon: (w) =>
+        set((state) => ({
+          weapons: [...state.weapons.filter((x) => x.slug !== w.slug), w],
+        })),
+      removeWeapon: (slug) =>
+        set((state) => ({
+          weapons: state.weapons.filter((w) => w.slug !== slug),
+        })),
 
       importCollection: (collection) =>
         set((state) => ({
@@ -96,13 +135,13 @@ export const useHomebrewStore = create<HomebrewState>()(
           items: [...state.items, ...collection.items],
           backgrounds: [...state.backgrounds, ...collection.backgrounds],
           feats: [...state.feats, ...collection.feats],
+          subclasses: [...state.subclasses, ...(collection.subclasses ?? [])],
+          monsters: [...state.monsters, ...(collection.monsters ?? [])],
+          weapons: [...state.weapons, ...(collection.weapons ?? [])],
         })),
 
-      resetHomebrew: () =>
-        set({ spells: [], races: [], items: [], backgrounds: [], feats: [] }),
+      resetHomebrew: () => set(emptyState),
     }),
-    {
-      name: "arcane-atlas:homebrew",
-    }
+    { name: "arcane-atlas:homebrew" }
   )
 );
