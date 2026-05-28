@@ -1,5 +1,3 @@
-import type { NextConfig } from "next";
-
 const OPEN5E_CDN = "https://api.open5e.com";
 const OPEN5E_IMG = "https://5e.tools";
 
@@ -39,7 +37,8 @@ const securityHeaders = [
   },
 ];
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   transpilePackages: ["@react-pdf/renderer"],
   images: {
     remotePatterns: [
