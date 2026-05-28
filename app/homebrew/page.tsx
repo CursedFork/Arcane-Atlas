@@ -48,7 +48,6 @@ import {
   FileSpreadsheet,
   CheckCircle2,
   AlertCircle,
-  Inbox,
   Loader2,
   SkipForward,
 } from "lucide-react";
@@ -162,7 +161,6 @@ export default function HomebrewPage() {
   const [mode, setMode] = useState<Mode>("manual");
   const [importError, setImportError] = useState<string | null>(null);
   const [bulkResults, setBulkResults] = useState<BulkFileResult[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
   const [csvResult, setCsvResult] = useState<{
     added: number;
