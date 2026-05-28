@@ -18,27 +18,35 @@ interface HomebrewState extends HomebrewCollection {
   addSpell: (spell: HomebrewSpell) => void;
   removeSpell: (slug: string) => void;
   updateSpell: (slug: string, spell: HomebrewSpell) => void;
+  bulkAddSpells: (spells: HomebrewSpell[]) => void;
 
   addRace: (race: HomebrewRace) => void;
   removeRace: (slug: string) => void;
+  bulkAddRaces: (races: HomebrewRace[]) => void;
 
   addItem: (item: HomebrewItem) => void;
   removeItem: (slug: string) => void;
+  bulkAddItems: (items: HomebrewItem[]) => void;
 
   addBackground: (background: HomebrewBackground) => void;
   removeBackground: (slug: string) => void;
+  bulkAddBackgrounds: (backgrounds: HomebrewBackground[]) => void;
 
   addFeat: (feat: HomebrewFeat) => void;
   removeFeat: (slug: string) => void;
+  bulkAddFeats: (feats: HomebrewFeat[]) => void;
 
   addSubclass: (sc: HomebrewSubclass) => void;
   removeSubclass: (slug: string) => void;
+  bulkAddSubclasses: (subclasses: HomebrewSubclass[]) => void;
 
   addMonster: (m: HomebrewMonster) => void;
   removeMonster: (slug: string) => void;
+  bulkAddMonsters: (monsters: HomebrewMonster[]) => void;
 
   addWeapon: (w: HomebrewWeapon) => void;
   removeWeapon: (slug: string) => void;
+  bulkAddWeapons: (weapons: HomebrewWeapon[]) => void;
 
   importCollection: (collection: HomebrewCollection) => void;
   resetHomebrew: () => void;
@@ -70,6 +78,11 @@ export const useHomebrewStore = create<HomebrewState>()(
         set((state) => ({
           spells: state.spells.map((s) => (s.slug === slug ? spell : s)),
         })),
+      bulkAddSpells: (incoming) =>
+        set((state) => {
+          const slugSet = new Set(incoming.map((s) => s.slug));
+          return { spells: [...state.spells.filter((s) => !slugSet.has(s.slug)), ...incoming] };
+        }),
 
       addRace: (race) =>
         set((state) => ({
@@ -77,6 +90,11 @@ export const useHomebrewStore = create<HomebrewState>()(
         })),
       removeRace: (slug) =>
         set((state) => ({ races: state.races.filter((r) => r.slug !== slug) })),
+      bulkAddRaces: (incoming) =>
+        set((state) => {
+          const slugSet = new Set(incoming.map((r) => r.slug));
+          return { races: [...state.races.filter((r) => !slugSet.has(r.slug)), ...incoming] };
+        }),
 
       addItem: (item) =>
         set((state) => ({
@@ -84,6 +102,11 @@ export const useHomebrewStore = create<HomebrewState>()(
         })),
       removeItem: (slug) =>
         set((state) => ({ items: state.items.filter((i) => i.slug !== slug) })),
+      bulkAddItems: (incoming) =>
+        set((state) => {
+          const slugSet = new Set(incoming.map((i) => i.slug));
+          return { items: [...state.items.filter((i) => !slugSet.has(i.slug)), ...incoming] };
+        }),
 
       addBackground: (bg) =>
         set((state) => ({
@@ -93,6 +116,11 @@ export const useHomebrewStore = create<HomebrewState>()(
         set((state) => ({
           backgrounds: state.backgrounds.filter((b) => b.slug !== slug),
         })),
+      bulkAddBackgrounds: (incoming) =>
+        set((state) => {
+          const slugSet = new Set(incoming.map((b) => b.slug));
+          return { backgrounds: [...state.backgrounds.filter((b) => !slugSet.has(b.slug)), ...incoming] };
+        }),
 
       addFeat: (feat) =>
         set((state) => ({
@@ -100,6 +128,11 @@ export const useHomebrewStore = create<HomebrewState>()(
         })),
       removeFeat: (slug) =>
         set((state) => ({ feats: state.feats.filter((f) => f.slug !== slug) })),
+      bulkAddFeats: (incoming) =>
+        set((state) => {
+          const slugSet = new Set(incoming.map((f) => f.slug));
+          return { feats: [...state.feats.filter((f) => !slugSet.has(f.slug)), ...incoming] };
+        }),
 
       addSubclass: (sc) =>
         set((state) => ({
@@ -109,6 +142,11 @@ export const useHomebrewStore = create<HomebrewState>()(
         set((state) => ({
           subclasses: state.subclasses.filter((s) => s.slug !== slug),
         })),
+      bulkAddSubclasses: (incoming) =>
+        set((state) => {
+          const slugSet = new Set(incoming.map((s) => s.slug));
+          return { subclasses: [...state.subclasses.filter((s) => !slugSet.has(s.slug)), ...incoming] };
+        }),
 
       addMonster: (m) =>
         set((state) => ({
@@ -118,6 +156,11 @@ export const useHomebrewStore = create<HomebrewState>()(
         set((state) => ({
           monsters: state.monsters.filter((m) => m.slug !== slug),
         })),
+      bulkAddMonsters: (incoming) =>
+        set((state) => {
+          const slugSet = new Set(incoming.map((m) => m.slug));
+          return { monsters: [...state.monsters.filter((m) => !slugSet.has(m.slug)), ...incoming] };
+        }),
 
       addWeapon: (w) =>
         set((state) => ({
@@ -127,6 +170,11 @@ export const useHomebrewStore = create<HomebrewState>()(
         set((state) => ({
           weapons: state.weapons.filter((w) => w.slug !== slug),
         })),
+      bulkAddWeapons: (incoming) =>
+        set((state) => {
+          const slugSet = new Set(incoming.map((w) => w.slug));
+          return { weapons: [...state.weapons.filter((w) => !slugSet.has(w.slug)), ...incoming] };
+        }),
 
       importCollection: (collection) =>
         set((state) => ({

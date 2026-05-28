@@ -239,8 +239,8 @@ export default function HomebrewPage() {
 
   const handleCSVFile = async (file: File) => {
     setCsvResult(null);
-    if (file.size > 2_097_152) {
-      setImportError("File exceeds 2 MB limit.");
+    if (file.size > 10_485_760) {
+      setImportError("File exceeds 10 MB limit.");
       return;
     }
     setImportError(null);
@@ -251,42 +251,42 @@ export default function HomebrewPage() {
 
     if (tab === "spells") {
       const r = importSpellsFromCSV(text);
-      r.ok.forEach((s) => store.addSpell(s));
+      store.bulkAddSpells(r.ok);
       added = r.ok.length;
       errors = r.errors;
     } else if (tab === "items") {
       const r = importItemsFromCSV(text);
-      r.ok.forEach((s) => store.addItem(s));
+      store.bulkAddItems(r.ok);
       added = r.ok.length;
       errors = r.errors;
     } else if (tab === "feats") {
       const r = importFeatsFromCSV(text);
-      r.ok.forEach((s) => store.addFeat(s));
+      store.bulkAddFeats(r.ok);
       added = r.ok.length;
       errors = r.errors;
     } else if (tab === "subclasses") {
       const r = importSubclassesFromCSV(text);
-      r.ok.forEach((s) => store.addSubclass(s));
+      store.bulkAddSubclasses(r.ok);
       added = r.ok.length;
       errors = r.errors;
     } else if (tab === "monsters") {
       const r = importMonstersFromCSV(text);
-      r.ok.forEach((s) => store.addMonster(s));
+      store.bulkAddMonsters(r.ok);
       added = r.ok.length;
       errors = r.errors;
     } else if (tab === "weapons") {
       const r = importWeaponsFromCSV(text);
-      r.ok.forEach((s) => store.addWeapon(s));
+      store.bulkAddWeapons(r.ok);
       added = r.ok.length;
       errors = r.errors;
     } else if (tab === "races") {
       const r = importRacesFromCSV(text);
-      r.ok.forEach((s) => store.addRace(s));
+      store.bulkAddRaces(r.ok);
       added = r.ok.length;
       errors = r.errors;
     } else {
       const r = importBackgroundsFromCSV(text);
-      r.ok.forEach((s) => store.addBackground(s));
+      store.bulkAddBackgrounds(r.ok);
       added = r.ok.length;
       errors = r.errors;
     }
@@ -305,8 +305,8 @@ export default function HomebrewPage() {
         results.push({ filename: file.name, type: "unknown", added: 0, errors: [], skipped: "Not a CSV file" });
         continue;
       }
-      if (file.size > 2_097_152) {
-        results.push({ filename: file.name, type: "unknown", added: 0, errors: [], skipped: "Exceeds 2 MB limit" });
+      if (file.size > 10_485_760) {
+        results.push({ filename: file.name, type: "unknown", added: 0, errors: [], skipped: "Exceeds 10 MB limit" });
         continue;
       }
       const text = await file.text();
@@ -319,14 +319,14 @@ export default function HomebrewPage() {
       let added = 0;
       let errors: BulkFileResult["errors"] = [];
       switch (type) {
-        case "spells":     { const r = importSpellsFromCSV(text);     r.ok.forEach((s) => store.addSpell(s));      added = r.ok.length; errors = r.errors; break; }
-        case "items":      { const r = importItemsFromCSV(text);      r.ok.forEach((s) => store.addItem(s));       added = r.ok.length; errors = r.errors; break; }
-        case "feats":      { const r = importFeatsFromCSV(text);      r.ok.forEach((s) => store.addFeat(s));       added = r.ok.length; errors = r.errors; break; }
-        case "subclasses": { const r = importSubclassesFromCSV(text); r.ok.forEach((s) => store.addSubclass(s));  added = r.ok.length; errors = r.errors; break; }
-        case "monsters":   { const r = importMonstersFromCSV(text);   r.ok.forEach((s) => store.addMonster(s));   added = r.ok.length; errors = r.errors; break; }
-        case "weapons":    { const r = importWeaponsFromCSV(text);    r.ok.forEach((s) => store.addWeapon(s));    added = r.ok.length; errors = r.errors; break; }
-        case "races":      { const r = importRacesFromCSV(text);      r.ok.forEach((s) => store.addRace(s));      added = r.ok.length; errors = r.errors; break; }
-        case "backgrounds":{ const r = importBackgroundsFromCSV(text);r.ok.forEach((s) => store.addBackground(s));added = r.ok.length; errors = r.errors; break; }
+        case "spells":     { const r = importSpellsFromCSV(text);     store.bulkAddSpells(r.ok);      added = r.ok.length; errors = r.errors; break; }
+        case "items":      { const r = importItemsFromCSV(text);      store.bulkAddItems(r.ok);       added = r.ok.length; errors = r.errors; break; }
+        case "feats":      { const r = importFeatsFromCSV(text);      store.bulkAddFeats(r.ok);       added = r.ok.length; errors = r.errors; break; }
+        case "subclasses": { const r = importSubclassesFromCSV(text); store.bulkAddSubclasses(r.ok); added = r.ok.length; errors = r.errors; break; }
+        case "monsters":   { const r = importMonstersFromCSV(text);   store.bulkAddMonsters(r.ok);   added = r.ok.length; errors = r.errors; break; }
+        case "weapons":    { const r = importWeaponsFromCSV(text);    store.bulkAddWeapons(r.ok);    added = r.ok.length; errors = r.errors; break; }
+        case "races":      { const r = importRacesFromCSV(text);      store.bulkAddRaces(r.ok);      added = r.ok.length; errors = r.errors; break; }
+        case "backgrounds":{ const r = importBackgroundsFromCSV(text);store.bulkAddBackgrounds(r.ok);added = r.ok.length; errors = r.errors; break; }
       }
       results.push({ filename: file.name, type, added, errors });
     }
@@ -1634,8 +1634,8 @@ function RaceDetail({ item }: { item: HomebrewRace }) {
     intelligence: "INT", wisdom: "WIS", charisma: "CHA",
   };
   const bonuses = Object.entries(item.abilityScoreIncrease)
-    .filter(([, v]) => v > 0)
-    .map(([k, v]) => `+${v} ${STAT_LABELS[k] ?? k}`)
+    .filter(([, v]) => v !== 0)
+    .map(([k, v]) => `${v > 0 ? "+" : ""}${v} ${STAT_LABELS[k] ?? k}`)
     .join(", ");
 
   return (

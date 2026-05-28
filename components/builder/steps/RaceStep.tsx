@@ -67,7 +67,7 @@ export function RaceStep() {
   function getAbilityText(r: BuilderRace) {
     const parts: string[] = [];
     for (const [key, val] of Object.entries(r.abilityScoreIncrease)) {
-      if (val) parts.push(`+${val} ${ABILITY_ABBREV[key] ?? key}`);
+      if (val) parts.push(`${val > 0 ? "+" : ""}${val} ${ABILITY_ABBREV[key] ?? key}`);
     }
     if (r.flexibleAbilityBoosts) {
       parts.push(
@@ -232,7 +232,7 @@ export function RaceStep() {
                               <span className="text-xs">
                                 {Object.entries(sr.abilityScoreIncrease)
                                   .filter(([, v]) => v)
-                                  .map(([k, v]) => `+${v} ${ABILITY_ABBREV[k] ?? k}`)
+                                  .map(([k, v]) => `${(v ?? 0) > 0 ? "+" : ""}${v} ${ABILITY_ABBREV[k] ?? k}`)
                                   .join(", ")}
                               </span>
                             )}

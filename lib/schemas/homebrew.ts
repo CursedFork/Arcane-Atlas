@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const MAX_STR = 200;
+const MAX_COMPONENTS = 600; // spell component strings can be long (material lists)
 const MAX_DESC = 5000;
 const MAX_LONG = 10_000;
 
@@ -12,7 +13,7 @@ export const HomebrewSpellSchema = z
     desc: z.string().min(1).max(MAX_DESC),
     higher_level: z.string().max(MAX_DESC).default(""),
     range: z.string().max(MAX_STR),
-    components: z.string().max(MAX_STR),
+    components: z.string().max(MAX_COMPONENTS),
     material: z.string().max(MAX_STR).default(""),
     ritual: z.enum(["yes", "no"]),
     duration: z.string().max(MAX_STR),
@@ -42,12 +43,12 @@ export const HomebrewRaceSchema = z
     speed: z.number().int().min(0).max(120),
     abilityScoreIncrease: z
       .object({
-        strength: z.number().int().min(0).max(4).default(0),
-        dexterity: z.number().int().min(0).max(4).default(0),
-        constitution: z.number().int().min(0).max(4).default(0),
-        intelligence: z.number().int().min(0).max(4).default(0),
-        wisdom: z.number().int().min(0).max(4).default(0),
-        charisma: z.number().int().min(0).max(4).default(0),
+        strength: z.number().int().min(-4).max(4).default(0),
+        dexterity: z.number().int().min(-4).max(4).default(0),
+        constitution: z.number().int().min(-4).max(4).default(0),
+        intelligence: z.number().int().min(-4).max(4).default(0),
+        wisdom: z.number().int().min(-4).max(4).default(0),
+        charisma: z.number().int().min(-4).max(4).default(0),
       })
       .strip(),
     traits: z.array(TraitSchema).max(20),
